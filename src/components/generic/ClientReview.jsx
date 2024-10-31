@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { useAuth } from "../../contexts/AuthProvider";
 import StarRating from "./StarRating";
+import { API_BASE_URL } from "../../config";
+import { toast } from "react-toastify";
 
 const ClientReview = ({
   reviewId,
@@ -10,7 +12,8 @@ const ClientReview = ({
   clientName,
   reviewDate,
   userId,
-  productId, // Assuming productId is passed as a prop
+  productId,
+  onDelete,
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [updatedReviewText, setUpdatedReviewText] = useState(reviewText);
@@ -29,24 +32,56 @@ const ClientReview = ({
     e.preventDefault();
 
     // Create FormData and manually append each field
-    const formData = new FormData();
-    formData.append("id", reviewId);
-    formData.append("productId", productId);
-    formData.append("userId", auth.userId);
-    formData.append("points", updatedRating);
-    formData.append("comments", updatedReviewText);
+    const formData = {
+      reviewId,
+      productId: parseInt(productId),
+      userId,
+      points: updatedRating,
+      comments: updatedReviewText,
+    };
 
     try {
-      const response = await fetch(`${API_BASE_URL}/Review/Update`, {
+      const response = await fetch(`${API_BASE_URL}/Review/AddUpdate`, {
         method: "POST",
-        body: formData,
+        headers: {
+          "Content-Type": "application/json",
+          authorization: `Bearer ${auth.accessToken}`,
+        },
+        body: JSON.stringify(formData),
       });
-
+      console.log(JSON.stringify(formData));
       const reviewJson = await response.json();
       console.log(reviewJson);
       closeModal();
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const handleDelete = async () => {
+    console.log("ReviewId", reviewId);
+    console.log("UserId", userId);
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/Review/Delete/${reviewId}?userId=${userId}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            authorization: `Bearer ${auth.accessToken}`,
+          },
+        }
+      );
+      const data = await response.json();
+      console.log(data);
+      if (data.succeeded) {
+        toast.success(data.message);
+        onDelete(reviewId); // Update the parent state
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      console.error("Error deleting review:", error);
     }
   };
 
@@ -61,8 +96,18 @@ const ClientReview = ({
       </div>
       {auth?.userId === userId && (
         <div>
-          <button onClick={openModal}>Update</button>
-          <button>Delete</button>
+          <button
+            onClick={openModal}
+            className="ml-2 p-1 border border-blue-500 hover:bg-blue-500"
+          >
+            Update
+          </button>
+          <button
+            onClick={handleDelete}
+            className="ml-2 p-1 border border-red-500 hover:bg-red-500"
+          >
+            Delete
+          </button>
         </div>
       )}
 

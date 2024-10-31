@@ -55,7 +55,7 @@ const ProductSingle = () => {
   const [data, setData] = useState({});
   const [activeTab, setActiveTab] = useState("Description");
   const [reviewCount, setReviewCount] = useState(15);
-  //const [reviewData, setReviewData] = useState([]);
+  //   const [reviewData, setReviewData] = useState([]);
   const [cart, setCart] = useContext(CartContext);
   // State to manage the currently displayed big image
   const [bigImage, setBigImage] = useState(Image1);
@@ -90,6 +90,14 @@ const ProductSingle = () => {
   }
 
   let product;
+  useEffect(() => {
+    // Fetch reviews and set them in state
+    getReviews();
+  }, []);
+
+  const handleDeleteReview = (deletedReviewId) => {
+    setReview(review.filter((review) => review.id !== deletedReviewId));
+  };
   const getReviews = async () => {
     const response = await fetch(
       `${API_BASE_URL}/Review/All/${productID}?pageNumber=1&pageSize=10`,
@@ -202,6 +210,7 @@ const ProductSingle = () => {
             review.map((review, index) => (
               <ClientReview
                 key={index}
+                reviewId={review.id}
                 productId={productID}
                 clientImage={review.images}
                 rating={review.points}
@@ -209,6 +218,7 @@ const ProductSingle = () => {
                 clientName={review.clientName}
                 reviewDate={review.createdOn}
                 userId={review.userId}
+                onDelete={handleDeleteReview}
               />
             ))}
         </>
@@ -240,7 +250,6 @@ const ProductSingle = () => {
 
   useEffect(() => {
     getProduct();
-    getReviews();
   }, []);
   const addToCart = (product) => {
     const productInCart = cart.find((item) => item.id === product.id);
