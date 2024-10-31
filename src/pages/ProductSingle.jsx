@@ -94,7 +94,9 @@ const ProductSingle = () => {
     // Fetch reviews and set them in state
     getReviews();
   }, []);
-
+  const handleAddReview = (newReview) => {
+    setReview((prevReviews) => [newReview, ...prevReviews]);
+  };
   const handleDeleteReview = (deletedReviewId) => {
     setReview(review.filter((review) => review.id !== deletedReviewId));
   };
@@ -119,7 +121,16 @@ const ProductSingle = () => {
 
     // Create a new FormData object, automatically including form inputs
     const formData = new FormData(e.target);
-
+    const newReview = {
+      comments: formData.get("comments"),
+      points: parseInt(formData.get("points"), 10),
+      userId: formData.get("userId"),
+      productID: formData.get("productID"),
+      attachments: formData.get("attachments"),
+      clientName: auth.clientName,
+      clientImage: auth.clientImage,
+      reviewDate: new Date().toISOString(),
+    };
     try {
       const response = await fetch(
         `${API_BASE_URL}/Review/AddWithAttachments`,
@@ -128,9 +139,17 @@ const ProductSingle = () => {
           body: formData, // Send FormData directly
         }
       );
-
+      console.log(formData);
       const reviewJson = await response.json();
+
       console.log(reviewJson);
+      if (reviewJson.succeeded) {
+        toast.success("Review added successfully!");
+
+        handleAddReview(newReview);
+      } else {
+        toast.error("Review not added successfully!");
+      }
     } catch (err) {
       console.log(err);
     }
