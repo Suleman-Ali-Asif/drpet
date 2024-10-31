@@ -16,6 +16,7 @@ import RedirectIfLoggedIn from "./utils/RedirectIfLoggedIn";
 import { USER_TYPES } from "./data/TextConstants";
 import "./App.css";
 import { CartProvider } from "./contexts/CartContext";
+import { AuthProvider } from "./contexts/AuthProvider";
 
 // eslint-disable-next-line import/first
 const Signup = lazy(() => import("./pages/auth/Signup"));
@@ -46,61 +47,63 @@ const Profile = lazy(() => import("./pages/Profile"));
 
 const App = () => {
   return (
-    <CartProvider>
-      <Provider store={store}>
-        <PersistGate loading={null} persistor={persistor}>
-          <ErrorBoundary>
-            <div>
-              <ToastContainer />
-              <BrowserRouter>
-                <Suspense fallback={<div>Loading...</div>}>
-                  <div>
-                    <Routes>
-                      {/* Auth routes */}
-                      <Route path="auth/*" element={<RedirectIfLoggedIn />}>
-                        <Route path="signup" element={<Signup />} />
-                        <Route
-                          path="verify-your-email"
-                          element={<AfterSuccessfulSignup />}
-                        />
-                        <Route
-                          path="email-verification/:token"
-                          element={<EmailVerification />}
-                        />
-                        <Route path="login" element={<Login />} />
-                        <Route
-                          path="forgot-password"
-                          element={<ForgotPassword />}
-                        />
-                        <Route
-                          path="reset-password-otp"
-                          element={<ResetPasswordLink />}
-                        />
-                        <Route
-                          path="reset-password"
-                          element={<ResetPassword />}
-                        />
-                        {/* Added this */}
-                        <Route
-                          path="reset-password-successful"
-                          element={<ResetPasswordSuccessful />}
-                        />
-                      </Route>
-                      <Route path="/checkout" element={<Checkout />} />{" "}
-                      {/* <Route path="/profile" element={<Profile />} />{" "} */}
-                      {/* Customer Routes */}
-                      <Route path="/*" element={<MainLayout />} />
-                      {/* display 404 page */}
-                      <Route path="*" element={<NotFound />} />
-                    </Routes>
-                  </div>
-                </Suspense>
-              </BrowserRouter>
-            </div>
-          </ErrorBoundary>
-        </PersistGate>
-      </Provider>
-    </CartProvider>
+    <AuthProvider>
+      <CartProvider>
+        <Provider store={store}>
+          <PersistGate loading={null} persistor={persistor}>
+            <ErrorBoundary>
+              <div>
+                <ToastContainer />
+                <BrowserRouter>
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <div>
+                      <Routes>
+                        {/* Auth routes */}
+                        <Route path="auth/*" element={<RedirectIfLoggedIn />}>
+                          <Route path="signup" element={<Signup />} />
+                          <Route
+                            path="verify-your-email"
+                            element={<AfterSuccessfulSignup />}
+                          />
+                          <Route
+                            path="email-verification/:token"
+                            element={<EmailVerification />}
+                          />
+                          <Route path="login" element={<Login />} />
+                          <Route
+                            path="forgot-password"
+                            element={<ForgotPassword />}
+                          />
+                          <Route
+                            path="reset-password-otp"
+                            element={<ResetPasswordLink />}
+                          />
+                          <Route
+                            path="reset-password"
+                            element={<ResetPassword />}
+                          />
+                          {/* Added this */}
+                          <Route
+                            path="reset-password-successful"
+                            element={<ResetPasswordSuccessful />}
+                          />
+                        </Route>
+                        <Route path="/checkout" element={<Checkout />} />{" "}
+                        {/* <Route path="/profile" element={<Profile />} />{" "} */}
+                        {/* Customer Routes */}
+                        <Route path="/*" element={<MainLayout />} />
+                        {/* display 404 page */}
+                        <Route path="*" element={<NotFound />} />
+                      </Routes>
+                    </div>
+                  </Suspense>
+                </BrowserRouter>
+              </div>
+            </ErrorBoundary>
+          </PersistGate>
+        </Provider>
+      </CartProvider>
+    </AuthProvider>
   );
 };
 

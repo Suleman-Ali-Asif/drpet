@@ -14,6 +14,7 @@ import Checkout from "../../pages/Checkout";
 import Profile from "../../pages/Profile";
 import AccountPage from "../../pages/Account";
 import Account from "../../pages/Account";
+import ProtectedRoute from "../../components/ProtectedPages";
 
 const HeaderRoutes = [
   {
@@ -46,11 +47,19 @@ const HeaderRoutes = [
   },
   {
     path: "/profile",
-    element: <Profile />,
+    element: (
+      <ProtectedRoute>
+        <Profile />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/account",
-    element: <Account />,
+    element: (
+      <ProtectedRoute>
+        <Account />
+      </ProtectedRoute>
+    ),
   },
 ];
 
