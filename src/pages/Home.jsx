@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { CustomButton, Slider, HomeTabs, ProductCard } from "../components";
 import homeBanner from "../data/images/catpng.png";
 import homeBanner1 from "../data/images/home_banner_1.png";
@@ -32,8 +32,10 @@ import {
   RightArrowIcon,
   SupportIcon,
 } from "../components/generic/Icons";
+import { API_BASE_URL } from "../config";
 
 const Home = () => {
+  const [productData, setProductData] = useState([]);
   const slides = [
     { image: homeBanner1, text: "Dog Items" },
     { image: homeBanner2, text: "Dog Items" },
@@ -278,6 +280,64 @@ const Home = () => {
     },
   ];
 
+  const pageNumber = 1;
+  const pageSize = 100;
+  async function getProducts() {
+    try {
+      const getAllCategories = await fetch(
+        `${API_BASE_URL}/Category/All?pageNumber=${pageNumber}&pageSize=${pageSize}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      const categories = await getAllCategories.json();
+      const categoryNames = ["Cat", "Dog", "Horse", "Accessories"];
+
+      const products = [];
+      for (const name of categoryNames) {
+        const category = categories.data.find((cat) => cat.name === name);
+
+        if (category) {
+          const productsResponse = await fetch(
+            `${API_BASE_URL}/Product/All?categoryId=${category.id}&pageNumber=${pageNumber}&pageSize=${pageSize}`,
+            {
+              method: "GET",
+              headers: {
+                "Content-Type": "application/json",
+              },
+            }
+          );
+
+          const productsData = await productsResponse.json();
+
+          if (productsData.data && productsData.data.length > 0) {
+            productsData.data.forEach((product) => {
+              products.push({
+                id: product.id,
+                imagePath: product.imagePath || "default-image.jpg",
+                name: product.name,
+                price: product.price,
+                discountPercentage: product.discountPercentage || 0,
+                currencySymbol: product.currencySymbol,
+              });
+            });
+          }
+        }
+      }
+      console.log("Get products:", products);
+      setProductData(products);
+      console.log("State: ", productData);
+    } catch (error) {
+      console.error("Error fetching products:", error);
+    }
+  }
+  useEffect(() => {
+    getProducts();
+  }, []);
   const newArrivalsProducts = productDataTopRate.slice(0, 6);
   const NewArrivalsSection = () => (
     <section className="py-12 px-2 md:px-12">
@@ -289,7 +349,7 @@ const Home = () => {
         </div>
       </div>
       <div className="h-0.5 w-16 bg-custom-green mb-6"></div>
-      <ProductCard content={newArrivalsProducts} cardsPerRow={3} />
+      <ProductCard content={productData} cardsPerRow={4} />
     </section>
   );
 
@@ -302,9 +362,19 @@ const Home = () => {
       </div>
       <div className="grid grid-cols-3 md:grid-cols-6 gap-4 w-full">
         {categoryPics.map((pic, index) => (
-          <Link to={pic.link} key={index} className="flex flex-col items-center">
-            <img src={pic.name} alt={`Category ${index + 1}`} className="w-24 h-24 object-contain" />
-            <span className="mt-2 text-sm">{pic.link.replace("/", "").replace("-", " ")}</span>
+          <Link
+            to={pic.link}
+            key={index}
+            className="flex flex-col items-center"
+          >
+            <img
+              src={pic.name}
+              alt={`Category ${index + 1}`}
+              className="w-24 h-24 object-contain"
+            />
+            <span className="mt-2 text-sm">
+              {pic.link.replace("/", "").replace("-", " ")}
+            </span>
           </Link>
         ))}
       </div>
@@ -315,7 +385,11 @@ const Home = () => {
   const NewArrivalsBanner = () => (
     <section className="text-center py-12">
       <div className="flex justify-center">
-        <img src={ArrivalBanner} alt="New Arrivals" className="w-full max-w-6xl" />
+        <img
+          src={ArrivalBanner}
+          alt="New Arrivals"
+          className="w-full max-w-6xl"
+        />
       </div>
     </section>
   );
@@ -329,25 +403,18 @@ const Home = () => {
         tabs={[
           {
             label: "Top Rated",
-            content: (
-              <ProductCard content={productDataTopRate} cardsPerRow={4} />
-            ),
+            content: <ProductCard content={productData} cardsPerRow={4} />,
           },
           {
             label: "Best Seller",
-            content: (
-              <ProductCard content={productDataBestSeller} cardsPerRow={4} />
-            ),
+            content: <ProductCard content={productData} cardsPerRow={4} />,
           },
           {
             label: "Trending",
-            content: (
-              <ProductCard content={productDataTrending} cardsPerRow={4} />
-            ),
+            content: <ProductCard content={productData} cardsPerRow={4} />,
           },
         ]}
       />
-
     </section>
   );
 
@@ -355,9 +422,15 @@ const Home = () => {
   const PromotionalBannersSection = () => (
     <section className="grid grid-cols-1 md:grid-cols-3 gap-4 py-12 px-8 md:px-24">
       <div className="relative overflow-hidden rounded-lg">
-        <img src={bottomBanner} alt="Hill's Ideal Balance" className="w-full h-auto" />
+        <img
+          src={bottomBanner}
+          alt="Hill's Ideal Balance"
+          className="w-full h-auto"
+        />
         <div className="absolute inset-0 bg-black bg-opacity-50 flex flex-col justify-center items-start p-6">
-          <h3 className="text-white text-2xl font-bold mb-2">HILL'S IDEAL BALANCE</h3>
+          <h3 className="text-white text-2xl font-bold mb-2">
+            HILL'S IDEAL BALANCE
+          </h3>
           <p className="text-white text-xl mb-4">$72.45</p>
         </div>
       </div>
@@ -369,9 +442,15 @@ const Home = () => {
         </div>
       </div>
       <div className="relative overflow-hidden rounded-lg">
-        <img src={bottomBanner} alt="Guinea Pig Treat Ideas" className="w-full h-auto" />
+        <img
+          src={bottomBanner}
+          alt="Guinea Pig Treat Ideas"
+          className="w-full h-auto"
+        />
         <div className="absolute inset-0 bg-black bg-opacity-50 flex flex-col justify-center items-start p-6">
-          <h3 className="text-white text-2xl font-bold mb-2">GUINEA PIG TREAT IDEAS</h3>
+          <h3 className="text-white text-2xl font-bold mb-2">
+            GUINEA PIG TREAT IDEAS
+          </h3>
           <p className="text-white text-xl mb-4">SHOP NOW</p>
         </div>
       </div>
@@ -382,14 +461,16 @@ const Home = () => {
   const CategoryProductsSection = ({ category, products }) => (
     <section className="py-12 px-2 md:px-12">
       <div className="flex justify-between">
-        <h3 className="font-medium text-custom-dark-blue pb-4">{category} FOOD</h3>
+        <h3 className="font-medium text-custom-dark-blue pb-4">
+          {category} FOOD
+        </h3>
         <div className="flex space-x-4 items-center">
           <LeftArrowIcon />
           <RightArrowIcon />
         </div>
       </div>
       <div className="h-0.5 w-16 bg-custom-green mb-6"></div>
-      <ProductCard content={products} cardsPerRow={5} spacing={"mx-3"}/>
+      <ProductCard content={products} cardsPerRow={5} spacing={"mx-3"} />
     </section>
   );
 
@@ -397,25 +478,29 @@ const Home = () => {
   const DealBannersSection = () => (
     <section className="grid grid-cols-1 md:grid-cols-2 gap-4 py-12 px-8 md:px-24">
       <div className="relative overflow-hidden rounded-lg">
-        <img src={bottomBanner} alt="Big Deals on Cat Litter" className="w-full h-auto" />
+        <img
+          src={bottomBanner}
+          alt="Big Deals on Cat Litter"
+          className="w-full h-auto"
+        />
         <div className="absolute inset-0 bg-black bg-opacity-50 flex flex-col justify-center items-start p-8">
           <h3 className="text-white text-3xl font-bold mb-2">BIG DEALS</h3>
           <p className="text-white text-xl mb-4">Up To 20% Off Cat Litter</p>
-          <CustomButton
-            customClass="bg-white text-black hover:bg-gray-200 px-6 py-2"
-          >
+          <CustomButton customClass="bg-white text-black hover:bg-gray-200 px-6 py-2">
             Shop Now
           </CustomButton>
         </div>
       </div>
       <div className="relative overflow-hidden rounded-lg">
-        <img src={bottomBanner} alt="Make Their Day" className="w-full h-auto" />
+        <img
+          src={bottomBanner}
+          alt="Make Their Day"
+          className="w-full h-auto"
+        />
         <div className="absolute inset-0 bg-black bg-opacity-50 flex flex-col justify-center items-start p-8">
           <h3 className="text-white text-3xl font-bold mb-2">MAKE THEIR DAY</h3>
           <p className="text-white text-xl mb-4">Up To 30% Off Dog Treats</p>
-          <CustomButton
-            customClass="bg-white text-black hover:bg-gray-200 px-6 py-2"
-          >
+          <CustomButton customClass="bg-white text-black hover:bg-gray-200 px-6 py-2">
             Shop Now
           </CustomButton>
         </div>
@@ -426,11 +511,17 @@ const Home = () => {
   // You May Be Interested In Section
   const InterestedInSection = () => (
     <section className="py-12 px-8 md:px-24">
-      <h3 className="font-medium text-blue pb-4 text-2xl">YOU MAY BE INTERESTED IN</h3>
-      <ProductCard content={productDataTrending.slice(0, 4)} cardsPerRow={4} useRowStyle={true} showCartButton={true}/>
+      <h3 className="font-medium text-blue pb-4 text-2xl">
+        YOU MAY BE INTERESTED IN
+      </h3>
+      <ProductCard
+        content={productData.slice(0, 4)}
+        cardsPerRow={4}
+        useRowStyle={true}
+        showCartButton={true}
+      />
     </section>
   );
-
 
   return (
     <div className="main-wrapper pt-32">
@@ -503,17 +594,22 @@ const Home = () => {
 
       {/* Products */}
       <div className="flex new-arrivals">
-      <NewArrivalsSection />
-      <NewArrivalsSection />
+        <NewArrivalsSection />
+        <NewArrivalsSection />
       </div>
 
       <PromotionalBannersSection />
-      <CategoryProductsSection category="DOG" products={productDataTopRate.slice(0, 8)} id="dog-food" />
+      <CategoryProductsSection
+        category="DOG"
+        products={productData.slice(0, 8)}
+        id="dog-food"
+      />
       <DealBannersSection />
-      <CategoryProductsSection category="CAT" products={productDataBestSeller.slice(0, 8)} />
+      <CategoryProductsSection
+        category="CAT"
+        products={productData.slice(0, 8)}
+      />
       <InterestedInSection />
-
-
     </div>
   );
 };
