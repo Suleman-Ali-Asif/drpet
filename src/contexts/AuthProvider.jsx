@@ -9,10 +9,23 @@ export const useAuth = () => useContext(AuthContext);
 export const AuthProvider = ({ children }) => {
   const [auth, setAuth] = useState(() => {
     const savedAuth = localStorage.getItem("auth");
-    return savedAuth ? JSON.parse(savedAuth) : { isLoggedIn: false };
+    return savedAuth
+      ? JSON.parse(savedAuth)
+      : {
+          isLoggedIn: false,
+          accessToken: null,
+          email: null,
+          userId: null,
+          isThirdPartySignUp: false,
+          refreshToken: null,
+        };
   });
 
-  // Listen for changes to localStorage across different tabs
+  const updateAuth = (newAuth) => {
+    localStorage.setItem("auth", JSON.stringify(newAuth));
+    setAuth(newAuth);
+  };
+
   useEffect(() => {
     const handleStorageChange = () => {
       const updatedAuth = JSON.parse(localStorage.getItem("auth"));
@@ -28,11 +41,6 @@ export const AuthProvider = ({ children }) => {
     };
   }, [auth.isLoggedIn]);
 
-  const login = (authData) => {
-    localStorage.setItem("auth", JSON.stringify(authData));
-    setAuth(authData); // Update auth state
-  };
-
   const logout = () => {
     localStorage.removeItem("auth");
     setAuth({
@@ -40,13 +48,15 @@ export const AuthProvider = ({ children }) => {
       accessToken: null,
       email: null,
       userId: null,
-      isThirdPartySignUp: null,
+      isThirdPartySignUp: false,
       refreshToken: null,
     });
   };
 
   return (
-    <AuthContext.Provider value={{ auth, login, logout }}>
+    <AuthContext.Provider
+      value={{ auth, isLoggedIn: auth.isLoggedIn, logout, updateAuth }}
+    >
       {children}
     </AuthContext.Provider>
   );

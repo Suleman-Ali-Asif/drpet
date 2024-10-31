@@ -36,8 +36,9 @@ const navLinks = {
 };
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
-  const { auth, logout } = useAuth();
+  const { auth, logout, isLoggedIn } = useAuth();
   console.log("auth: ", auth);
+  console.log("isLoggedIn: ", isLoggedIn);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -103,7 +104,7 @@ const Navbar = () => {
               <FaTruck />
               <span>Track Your Order</span>
             </Link>
-            {auth.isLoggedIn ? (
+            {isLoggedIn ? (
               <button
                 onClick={logout}
                 className="flex items-center pl-2 ml-2 border-l border-l-gray-500 space-x-1 text-gray-700 hover:text-blue-500"

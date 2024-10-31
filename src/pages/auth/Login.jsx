@@ -16,12 +16,13 @@ import { PAGE_TEXTS } from "../../data/TextConstants";
 import { Spinner } from "../../components";
 import { API_BASE_URL } from "../../config";
 import api from "../../utils/api";
+import { useAuth } from "../../contexts/AuthProvider";
 
 function Login() {
   const dispatch = useDispatch();
   const authentication = useSelector((state) => state.auth);
   const [loading, setLoading] = useState(false);
-
+  const { updateAuth } = useAuth();
   const fields = [
     { type: "email", name: "email", placeholder: "Email Address" },
     { type: "password", name: "password", placeholder: "Password" },
@@ -45,39 +46,30 @@ function Login() {
     setLoading(true);
 
     try {
-      // Validate form data
       await validationSchema.validate(formData, { abortEarly: false });
 
-      // Make API request
       const response = await api.post("/Auth/Login", formData);
       console.log(response.data);
 
-      // Check if login succeeded
       if (response.data.succeeded) {
         const { authToken, email, id, isThirdPartySignUp, refreshToken } =
           response.data.data;
 
-        // Save user data in localStorage
-        localStorage.setItem(
-          "auth",
-          JSON.stringify({
-            isLoggedIn: true,
-            accessToken: authToken,
-            email: email,
-            userId: id,
-            isThirdPartySignUp: isThirdPartySignUp,
-            refreshToken: refreshToken,
-          })
-        );
+        updateAuth({
+          isLoggedIn: true,
+          accessToken: authToken,
+          email: email,
+          userId: id,
+          isThirdPartySignUp: isThirdPartySignUp,
+          refreshToken: refreshToken,
+        });
 
-        // Notify success and navigate to the homepage
         toast.success("You have successfully logged in.");
         setTimeout(() => {
           navigate("/");
         }, 5000);
       }
     } catch (error) {
-      // Handle validation errors
       if (error instanceof Yup.ValidationError) {
         const validationErrors = {};
         error.inner.forEach((err) => {
