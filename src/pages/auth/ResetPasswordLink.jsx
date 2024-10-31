@@ -7,6 +7,7 @@ import * as Yup from "yup";
 import { DynamicForm, AuthPageLayout } from "../../components";
 
 import signupImage from "../../data/images/auth/login.png";
+import { API_BASE_URL } from "../../config";
 
 const ResetPasswordLink = () => {
   const fields = [
@@ -38,12 +39,32 @@ const ResetPasswordLink = () => {
 
     try {
       await validationSchema.validate(formData, { abortEarly: false });
+      const email = localStorage.getItem("email");
+      console.log("email");
+      const updatedFormData = {
+        token: formData.token,
+        password: formData.password,
+        confirmPassword: formData.confirmedPassword,
+        email,
+      };
+      const response = await fetch(`${API_BASE_URL}/Auth/ResetPassword`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify(updatedFormData),
+      });
 
-      toast.success("Password reset OTP verified successfully");
+      console.log("updatedFormData", updatedFormData);
 
-      setTimeout(() => {
-        navigate("/auth/reset-password");
-      }, 5000);
+      const data = await response.json();
+      console.log("Data", data);
+      if (data.succeeded) {
+        toast.success(data.message);
+        navigate("/auth/login");
+      } else {
+        toast.error(data.message);
+      }
     } catch (error) {
       if (error instanceof Yup.ValidationError) {
         const validationErrors = {};

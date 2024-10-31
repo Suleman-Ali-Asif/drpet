@@ -41,11 +41,13 @@ function ForgotPassword() {
         },
         body: JSON.stringify(formData),
       });
+
       const data = await response.json();
       console.log("Data", data);
       console.log("formData", formData);
       if (data.succeeded) {
         toast.success(data.message);
+        localStorage.setItem("email", formData.email);
         navigate("/auth/reset-password-otp");
       } else {
         toast.error(data.message);
