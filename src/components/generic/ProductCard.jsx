@@ -52,19 +52,19 @@ const ProductCard = ({
     <div className="flex flex-wrap h-fit new-arrivals-row">
       {content.map((product, index) => (
         <Link
-          to={`/product/${product.productName.trim().replace(/\s+/g, "-")}/${
-            product.id
-          }`}
+          to={`/product/${
+            product.name ? product.name.trim().replace(/\s+/g, "-") : "unknown"
+          }/${product.id}`}
           key={index}
           className={`${widthClasses[cardsPerRow]} flex flex-${
             useRowStyle ? "row" : "col"
           } 
-                    items-${
-                      useRowStyle ? "end" : "center"
-                    } box-border mb-4 product-card 
-                    ${
-                      (index + 1) % cardsPerRow !== 0 ? "pr-3" : ""
-                    } shadow-md gray-600 ${spacing}`}
+                  items-${
+                    useRowStyle ? "end" : "center"
+                  } box-border mb-4 product-card 
+                  ${
+                    (index + 1) % cardsPerRow !== 0 ? "pr-3" : ""
+                  } shadow-md gray-600 ${spacing}`}
         >
           <div
             className={`relative w-full h-auto md:h-${
