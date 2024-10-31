@@ -42,6 +42,7 @@ import {
   VisaIcon,
 } from "../components/generic/Icons";
 import { API_BASE_URL } from "../config";
+import { useAuth } from "../contexts/AuthProvider";
 
 const ProductSingle = () => {
   let { productID, productName } = useParams();
@@ -58,14 +59,14 @@ const ProductSingle = () => {
   const [cart, setCart] = useContext(CartContext);
   // State to manage the currently displayed big image
   const [bigImage, setBigImage] = useState(Image1);
-
+  const [review, setReview] = useState();
   // Function to change the big image
   const handleImageClick = (newImage) => {
     setBigImage(newImage);
   };
 
   const [isLoading, setIsLoading] = useState(true);
-
+  const { auth } = useAuth();
   async function getProduct() {
     try {
       const response = await fetch(
@@ -89,8 +90,43 @@ const ProductSingle = () => {
   }
 
   let product;
-
+  const getReviews = async () => {
+    const response = await fetch(
+      `${API_BASE_URL}/Review/All/${productID}?pageNumber=1&pageSize=10`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    const data = await response.json();
+    const reviews = data.data;
+    setReview(reviews);
+    console.log("reviews: ", reviews);
+  };
   console.log("data: ", data);
+  async function onSubmit(e) {
+    e.preventDefault();
+
+    // Create a new FormData object, automatically including form inputs
+    const formData = new FormData(e.target);
+
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/Review/AddWithAttachments`,
+        {
+          method: "POST",
+          body: formData, // Send FormData directly
+        }
+      );
+
+      const reviewJson = await response.json();
+      console.log(reviewJson);
+    } catch (err) {
+      console.log(err);
+    }
+  }
 
   const reviewData = [
     {
@@ -123,41 +159,58 @@ const ProductSingle = () => {
       label: "DESCRIPTION",
       content: (
         <div>
-          <p>
-            Our innovative Super Clumping Premium Quality Cat litter is
-            meticulously designed to deliver superior performance, outstanding
-            odor control, and ease of use, Pawsitively Fresh and clean
-            environment for your beloved furry companion.
-          </p>
-
-          <ul className="list-disc pl-4 mt-4 mb-4">
-            <li>Superior Clumping</li>
-            <li>Outstanding Odor Control</li>
-            <li>99% Dust Free</li>
-            <li>Soft on Paws</li>
-            <li>Lightweight</li>
-            <li>Flushable</li>
-          </ul>
-
-          <p>Weight: 4.53 KG (10L)</p>
-          <p>flavors (Lavender, Baby Powder and Natural Unscented)</p>
+          <p>{data.longDescription}</p>
         </div>
+      ),
+    },
+
+    {
+      label: "ADD REVIEW",
+      content: (
+        <form onSubmit={onSubmit}>
+          <textarea
+            name="comments"
+            placeholder="Enter review"
+            rows={5}
+            className="w-full border p-5 border-gray-100 shadow required"
+          ></textarea>
+
+          <input
+            name="points"
+            type="number"
+            className="w-full border p-5 border-gray-100 shadow required my-2"
+            placeholder="Enter rating"
+          />
+
+          <input type="text" name="productID" value={productID} readOnly />
+
+          {auth && (
+            <input type="text" name="userId" value={auth.userId} readOnly />
+          )}
+
+          <input type="file" name="attachments" />
+
+          <button type="submit">Submit</button>
+        </form>
       ),
     },
     {
       label: "REVIEWS",
       content: (
         <>
-          {reviewData.map((review, index) => (
-            <ClientReview
-              key={index}
-              clientImage={review.clientImage}
-              rating={review.rating}
-              reviewText={review.reviewText}
-              clientName={review.clientName}
-              reviewDate={review.reviewDate}
-            />
-          ))}
+          {review &&
+            review.map((review, index) => (
+              <ClientReview
+                key={index}
+                productId={productID}
+                clientImage={review.images}
+                rating={review.points}
+                reviewText={review.comments}
+                clientName={review.clientName}
+                reviewDate={review.createdOn}
+                userId={review.userId}
+              />
+            ))}
         </>
       ),
     },
@@ -187,6 +240,7 @@ const ProductSingle = () => {
 
   useEffect(() => {
     getProduct();
+    getReviews();
   }, []);
   const addToCart = (product) => {
     const productInCart = cart.find((item) => item.id === product.id);
@@ -292,21 +346,18 @@ const ProductSingle = () => {
             <div className="text-gray-400">SKU:1231</div>
             <div className="flex items-center mt-2 md:mt-8">
               <p className="text-lg md:text-xl font-semibold text-red-400">
-                $12.99
+                AED {data.price}
               </p>
-              <p className="ml-2 text-gray-400 line-through">$15.99</p>
+              <p className="ml-2 text-gray-400 line-through">
+                AED {data.discountPercentage}
+              </p>
             </div>
-            <p className="font-semibold text-gray-600">$12.99/3g</p>
+            <p className="font-semibold text-gray-600">{data.currencySymbol}</p>
 
             <div className="font-bold text-xs text-black mt-8">
-              Availability: 6 left in stock
+              Availability: {data.totalRecords} left in stock
             </div>
-            <p className="text-xs text-gray-600">
-              Contrary to popular belief, Lorem Ipsum is not simply random text.
-              It has roots in a piece of classical Latin literature from 45 BC,
-              making it over 2000 years old. Richard McClintock, a Latin
-              professor at Hampden-Sydney College in Virginia,
-            </p>
+            <p className="text-xs text-gray-600">{data.shortDescription}</p>
             <div className="flex justify-left items-center mt-6">
               <span className="text-gray-600 font-semibold pr-4">Size: </span>
               {["s", "m", "l", "xl"].map((label, index) => (
