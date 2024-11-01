@@ -15,6 +15,7 @@ import Profile from "../../pages/Profile";
 import AccountPage from "../../pages/Account";
 import Account from "../../pages/Account";
 import ProtectedRoute from "../../components/ProtectedPages";
+import Dashboard from "../../pages/Dashboard";
 
 const HeaderRoutes = [
   {
@@ -58,6 +59,14 @@ const HeaderRoutes = [
     element: (
       <ProtectedRoute>
         <Account />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/dashboard",
+    element: (
+      <ProtectedRoute>
+        <Dashboard />
       </ProtectedRoute>
     ),
   },

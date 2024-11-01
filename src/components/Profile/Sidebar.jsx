@@ -6,7 +6,12 @@ const Sidebar = () => {
       <h3 className="font-semibold text-xl mb-6">Account</h3>
       <ul>
         <li className="mb-4">
-          <a href="#" className="text-green-500 hover:text-green-700">
+          <a href="/dashboard" className="hover:text-green-700">
+            Profile
+          </a>
+        </li>
+        <li className="mb-4">
+          <a href="/profile" className="text-green-500 hover:text-green-700">
             Orders
           </a>
         </li>
